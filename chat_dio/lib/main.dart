@@ -13,7 +13,7 @@ class AppDrawer extends StatelessWidget {
         children: <Widget>[
           const DrawerHeader(
             decoration: BoxDecoration(
-              color: Colors.blue,
+              color: Colors.deepPurple,
             ),
             child: Text(
               'Drawer Header',
@@ -57,7 +57,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Chat Application',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.deepPurple,
       ),
       home: const SecondChatRoom(),
     );

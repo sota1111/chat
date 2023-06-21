@@ -12,5 +12,7 @@ class ImageUrls {
   static const hospiFace1 = "https://images-hospi.s3.ap-northeast-1.amazonaws.com/Face01.jpg";
   static const hospiFace2 = "https://images-hospi.s3.ap-northeast-1.amazonaws.com/Face02.jpg";
   static const hospiFace3 = "https://images-hospi.s3.ap-northeast-1.amazonaws.com/Face03.jpg";
+
+  static const dioFace0 = "https://images-dio.s3.ap-northeast-1.amazonaws.com/Face00.jpg";
 }
 

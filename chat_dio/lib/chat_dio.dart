@@ -17,11 +17,11 @@ class SecondChatRoom extends StatefulWidget {
 class ChatRoomState extends State<SecondChatRoom> {
   final List<types.Message> _messages = [];
   final _user = const types.User(id: '82091008-a484-4a89-ae75-a22bf8d6f3ac');
-  types.User _hospi = const types.User(
-    id: 'hospi-blue',
-    firstName: "ホスピ",
+  types.User _dio = const types.User(
+    id: 'dio',
+    firstName: "Dio",
     lastName: "",
-    imageUrl: ImageUrls.hospiFace0,
+    imageUrl: ImageUrls.dioFace0,
   );
 
 
@@ -29,10 +29,10 @@ class ChatRoomState extends State<SecondChatRoom> {
   void initState() {
     super.initState();
     _addMessage(types.TextMessage(
-      author: _hospi,
+      author: _dio,
       createdAt: DateTime.now().millisecondsSinceEpoch,
       id: randomString(),
-      text: "こんにちは、ホスピです。\n何かお困りですか？",
+      text: "このディオに何か聞きたいことがあるか。",
     ));
   }
 
@@ -45,9 +45,6 @@ class ChatRoomState extends State<SecondChatRoom> {
         user: _user,
         messages: _messages,
         onSendPressed: _handleSendPressed,
-        //onAttachmentPressed: () => _addNetworkImageAsMessage('https://images-hospi.s3.ap-northeast-1.amazonaws.com/Face03.jpg'), // ここを修正
-        //onMessageTap: _handleMessageTap,
-        //onPreviewDataFetched: _handlePreviewDataFetched,
         showUserAvatars: true,
         showUserNames: true,
       ),
@@ -90,30 +87,13 @@ class ChatRoomState extends State<SecondChatRoom> {
 
     Future.delayed(const Duration(seconds: 1), () {
       final responseText = apiResponseData['Response'] ?? 'Failed';
-      final responseEmotion = apiResponseData['MaxIndex_Emotion'] ?? '0';
-      final floorUrl = apiResponseData['FloorUrl'] ?? 'None';
-      final needMap = apiResponseData['NeedMap'] ?? 'false';
-      print(floorUrl);
-
-
-      Map<String, String> emotionToImageUrl = {
-        '0': ImageUrls.hospiFace0,
-        '1': ImageUrls.hospiFace1,
-        '2': ImageUrls.hospiFace2,
-        '3': ImageUrls.hospiFace3,
-      };
-
-      String imageUrl = emotionToImageUrl[responseEmotion] ?? ImageUrls.hospiFace0;
-
-      _hospi = types.User(
-        id: 'hospi-blue',
-        firstName: "ホスピ",
-        lastName: "",
-        imageUrl: imageUrl,
-      );
+      final quote = apiResponseData['MaxIndex_Emotion'] ?? '0';
+      final quoteNumber = apiResponseData['MaxIndex_Emotion'] ?? '0';
+      final quoteUrl = apiResponseData['MaxIndex_Emotion'] ?? '0';
+      print(quoteNumber);
 
       final responseMessage = types.TextMessage(
-        author: _hospi,
+        author: _dio,
         createdAt: DateTime.now().millisecondsSinceEpoch,
         id: randomString(),
         text: responseText,
@@ -121,12 +101,12 @@ class ChatRoomState extends State<SecondChatRoom> {
       _addMessage(responseMessage);
 
       // 画像メッセージを送信
-      if(needMap == "true"){
+      if(quote == "true"){
         final imageMessage = types.ImageMessage(
-          author: _hospi,
+          author: _dio,
           createdAt: DateTime.now().millisecondsSinceEpoch,
           id: randomString(),
-          uri: floorUrl,
+          uri: quoteUrl,
           name: 'image',
           size: 1,
           width: 100,
@@ -144,7 +124,7 @@ class ChatRoomState extends State<SecondChatRoom> {
     final Map<String, String> data = {
       'input_text': inputText,
       'userid': 'user_0001',
-      'convid': 'hospi',
+      'convid': 'dio',
     };
     final response = await http.post(Uri.parse(url), headers: headers, body: json.encode(data));
 
