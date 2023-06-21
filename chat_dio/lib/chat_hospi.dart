@@ -39,7 +39,7 @@ class ChatRoomState extends State<ChatRoom> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Chat Room 1')),
+      appBar: AppBar(title: const Text('Chat with hospi')),
       drawer: const AppDrawer(),
       body: Chat(
         user: _user,

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'chat_room.dart';
-import 'chat_room2.dart';
+import 'chat_hospi.dart';
+import 'chat_dio.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -25,7 +25,7 @@ class AppDrawer extends StatelessWidget {
           ),
           ListTile(
             leading: const Icon(Icons.message),
-            title: const Text('Chat Room'),
+            title: const Text('Chat with hospi'),
             onTap: () {
               Navigator.pushReplacement(context,
                   MaterialPageRoute(builder: (BuildContext context) => const ChatRoom()));
@@ -33,7 +33,7 @@ class AppDrawer extends StatelessWidget {
           ),
           ListTile(
             leading: const Icon(Icons.message),
-            title: const Text('Chat Room 2'),
+            title: const Text('Chat with Dio'),
             onTap: () {
               Navigator.pushReplacement(context,
                   MaterialPageRoute(builder: (BuildContext context) => const SecondChatRoom()));
@@ -59,7 +59,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const ChatRoom(),
+      home: const SecondChatRoom(),
     );
   }
 }
