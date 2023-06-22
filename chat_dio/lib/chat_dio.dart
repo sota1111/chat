@@ -32,14 +32,14 @@ class ChatRoomState extends State<SecondChatRoom> {
       author: _dio,
       createdAt: DateTime.now().millisecondsSinceEpoch,
       id: randomString(),
-      text: "このディオに何か聞きたいことがあるか。",
+      text: "このディオに何か聞きたいことがあるか？",
     ));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('教えてディオ課長')),
+      appBar: AppBar(title: const Text('教えて課長！ディオ課長！！')),
       drawer: const AppDrawer(),
       body: Chat(
         user: _user,
