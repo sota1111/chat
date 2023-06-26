@@ -14,5 +14,7 @@ class ImageUrls {
   static const hospiFace3 = "https://images-hospi.s3.ap-northeast-1.amazonaws.com/Face03.jpg";
 
   static const dioFace0 = "https://images-dio.s3.ap-northeast-1.amazonaws.com/face.png";
+
+  static const hattoriFace0 = "https://images-dio.s3.ap-northeast-1.amazonaws.com/face.png";
 }
 

@@ -7,39 +7,41 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
-class ChatRoomDio extends StatefulWidget {
-  const ChatRoomDio({Key? key}) : super(key: key);
+class ChatRoomHattori extends StatefulWidget {
+  const ChatRoomHattori({Key? key}) : super(key: key);
 
   @override
   ChatRoomState createState() => ChatRoomState();
 }
 
-class ChatRoomState extends State<ChatRoomDio> {
+class ChatRoomState extends State<ChatRoomHattori> {
   final List<types.Message> _messages = [];
   final _user = const types.User(id: '82091008-a484-4a89-ae75-a22bf8d6f3ac');
-  final types.User _dio = const types.User(
-    id: 'dio',
-    firstName: "Dio",
-    lastName: "",
-    imageUrl: ImageUrls.dioFace0,
+  final types.User _hattori = const types.User(
+    id: 'hattori',
+    firstName: "服部",
+    lastName: "平次",
+    imageUrl: ImageUrls.hattoriFace0,
   );
+  String? hattoriText;
+  final hattoriFirstComment = "工藤、なぞなぞだ。オーケストラのステージでおしりを向むけてるのはだれかわかるか？";
 
 
   @override
   void initState() {
     super.initState();
     _addMessage(types.TextMessage(
-      author: _dio,
+      author: _hattori,
       createdAt: DateTime.now().millisecondsSinceEpoch,
       id: randomString(),
-      text: "このディオに何か聞きたいことがあるか。",
+      text: hattoriFirstComment,
     ));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('教えて！ディオ課長！！')),
+      appBar: AppBar(title: const Text('真実はいつも一つ')),
       drawer: const AppDrawer(),
       body: Chat(
         user: _user,
@@ -57,46 +59,50 @@ class ChatRoomState extends State<ChatRoomDio> {
     });
   }
 
+  Future<String> fetchMessage() async {
+    const String url =
+        'https://u5fhd9aj1l.execute-api.ap-northeast-1.amazonaws.com/Prod/chat-comic';
+    final Map<String, String> headers = {'Content-Type': 'application/json'};
+    final Map<String, String> data = {
+      'input_text': hattoriText?? hattoriFirstComment,
+      'userid': 'user_0001',
+      'convid': 'Conan',
+    };
+    debugPrint("hattoriText:$hattoriText");
+    final response = await http.post(Uri.parse(url), headers: headers, body: json.encode(data));
+
+    if (response.statusCode == 200) {
+      var jsonResponse = json.decode(response.body);
+      hattoriText = jsonResponse['Response'];
+      return jsonResponse['Response'];
+    } else {
+      return 'しくじってもうた！';
+    }
+  }
+
   void _handleSendPressed(types.PartialText message) async {
+    // ここでコナン君が話す
+    final sendMessage = await fetchMessage();
     final textMessage = types.TextMessage(
       author: _user,
       createdAt: DateTime.now().millisecondsSinceEpoch,
       id: randomString(),
-      text: message.text,
+      text: sendMessage,//message.text,
     );
-
     _addMessage(textMessage);
 
-    Map<String, dynamic> apiResponseData = await fetchResponseFromApi(message.text);
-
+    // 服部が応答
+    print(textMessage.text);
+    Map<String, dynamic> apiResponseData = await fetchResponseFromApi(textMessage.text);
     Future.delayed(const Duration(seconds: 1), () {
-      final responseText = apiResponseData['Response'] ?? 'Failed';
-      final quote = apiResponseData['Quote'] ?? 'false';
-      final quoteUrl = apiResponseData['Url'] ?? '';
-      debugPrint(quoteUrl);
-
-      // 画像メッセージを送信
-      if(quote == "true"){
-        final imageMessage = types.ImageMessage(
-          author: _dio,
-          createdAt: DateTime.now().millisecondsSinceEpoch,
-          id: randomString(),
-          uri: quoteUrl,
-          name: 'image',
-          size: 1,
-          width: 100,
-          height: 70,
-        );
-        _addMessage(imageMessage);
-      }else{
-        final responseMessage = types.TextMessage(
-          author: _dio,
-          createdAt: DateTime.now().millisecondsSinceEpoch,
-          id: randomString(),
-          text: responseText,
-        );
-        _addMessage(responseMessage);
-      }
+      final responseText = apiResponseData['Response'] ?? 'なんや';
+      final responseMessage = types.TextMessage(
+        author: _hattori,
+        createdAt: DateTime.now().millisecondsSinceEpoch,
+        id: randomString(),
+        text: responseText,
+      );
+      _addMessage(responseMessage);
     });
   }
 
@@ -107,7 +113,7 @@ class ChatRoomState extends State<ChatRoomDio> {
     final Map<String, String> data = {
       'input_text': inputText,
       'userid': 'user_0001',
-      'convid': 'Dio',
+      'convid': 'Heiji',
     };
     final response = await http.post(Uri.parse(url), headers: headers, body: json.encode(data));
 
@@ -121,6 +127,7 @@ class ChatRoomState extends State<ChatRoomDio> {
         'Url': jsonResponse['Url'],
       };
     } else {
+      debugPrint("確認");
       return {'Response': 'Failed', 'Quote': '0', 'Url': ''};
     }
   }

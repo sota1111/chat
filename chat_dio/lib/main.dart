@@ -1,3 +1,4 @@
+import 'package:chat_dio/chat_hattori.dart';
 import 'package:flutter/material.dart';
 import 'chat_hospi.dart';
 import 'chat_dio.dart';
@@ -25,7 +26,7 @@ class AppDrawer extends StatelessWidget {
           ),
           ListTile(
             leading: const Icon(Icons.message),
-            title: const Text('Chat with hospi'),
+            title: const Text('案内ホスピちゃん'),
             onTap: () {
               Navigator.pushReplacement(context,
                   MaterialPageRoute(builder: (BuildContext context) => const ChatRoom()));
@@ -33,10 +34,18 @@ class AppDrawer extends StatelessWidget {
           ),
           ListTile(
             leading: const Icon(Icons.message),
-            title: const Text('Chat with Dio'),
+            title: const Text('ディオ課長'),
             onTap: () {
               Navigator.pushReplacement(context,
-                  MaterialPageRoute(builder: (BuildContext context) => const SecondChatRoom()));
+                  MaterialPageRoute(builder: (BuildContext context) => const ChatRoomDio()));
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.message),
+            title: const Text('コナンと服部'),
+            onTap: () {
+              Navigator.pushReplacement(context,
+                  MaterialPageRoute(builder: (BuildContext context) => const ChatRoomHattori()));
             },
           ),
         ],
@@ -59,7 +68,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.deepPurple,
       ),
-      home: const SecondChatRoom(),
+      home: const ChatRoomHattori(),
     );
   }
 }
