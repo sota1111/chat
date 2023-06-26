@@ -15,6 +15,6 @@ class ImageUrls {
 
   static const dioFace0 = "https://images-dio.s3.ap-northeast-1.amazonaws.com/face.png";
 
-  static const hattoriFace0 = "https://images-dio.s3.ap-northeast-1.amazonaws.com/face.png";
+  static const hattoriFace0 = "https://images-comics.s3.ap-northeast-1.amazonaws.com/Conan/HeijiFace.png";
 }
 

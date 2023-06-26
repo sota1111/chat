@@ -24,7 +24,8 @@ class ChatRoomState extends State<ChatRoomHattori> {
     imageUrl: ImageUrls.hattoriFace0,
   );
   String? hattoriText;
-  final hattoriFirstComment = "工藤、なぞなぞだ。オーケストラのステージでおしりを向むけてるのはだれかわかるか？";
+  String? conanText;
+  final hattoriFirstComment = "工藤、なぞなぞや。一緒に考えようや。駅は駅でも　おしりにありそうな　赤い駅って　な〜んだ？？";
 
 
   @override
@@ -59,13 +60,14 @@ class ChatRoomState extends State<ChatRoomHattori> {
     });
   }
 
+  // ここでコナン君が話す
   Future<String> fetchMessage() async {
     const String url =
         'https://u5fhd9aj1l.execute-api.ap-northeast-1.amazonaws.com/Prod/chat-comic';
     final Map<String, String> headers = {'Content-Type': 'application/json'};
     final Map<String, String> data = {
       'input_text': hattoriText?? hattoriFirstComment,
-      'userid': 'user_0001',
+      'userid': 'user_0000',
       'convid': 'Conan',
     };
     debugPrint("hattoriText:$hattoriText");
@@ -73,10 +75,11 @@ class ChatRoomState extends State<ChatRoomHattori> {
 
     if (response.statusCode == 200) {
       var jsonResponse = json.decode(response.body);
-      hattoriText = jsonResponse['Response'];
+      conanText = jsonResponse['Response'];
+      debugPrint("conanText:$conanText");
       return jsonResponse['Response'];
     } else {
-      return 'しくじってもうた！';
+      return 'あれれ〜';
     }
   }
 
@@ -92,7 +95,6 @@ class ChatRoomState extends State<ChatRoomHattori> {
     _addMessage(textMessage);
 
     // 服部が応答
-    print(textMessage.text);
     Map<String, dynamic> apiResponseData = await fetchResponseFromApi(textMessage.text);
     Future.delayed(const Duration(seconds: 1), () {
       final responseText = apiResponseData['Response'] ?? 'なんや';
@@ -121,6 +123,7 @@ class ChatRoomState extends State<ChatRoomHattori> {
       var jsonResponse = json.decode(response.body);
       debugPrint(jsonResponse['Response']);
       debugPrint(jsonResponse['Quote']);
+      hattoriText = jsonResponse['Response'];
       return {
         'Response': jsonResponse['Response'],
         'Quote': jsonResponse['Quote'],
