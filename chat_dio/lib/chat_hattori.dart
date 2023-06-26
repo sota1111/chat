@@ -23,19 +23,25 @@ class ChatRoomState extends State<ChatRoomHattori> {
     lastName: "平次",
     imageUrl: ImageUrls.hattoriFace0,
   );
+  final types.User _conan = const types.User(
+    id: 'conan',
+    firstName: "名探偵",
+    lastName: "コナン",
+    imageUrl: ImageUrls.conanFace0,
+  );
   String? hattoriText;
-  String? conanText;
-  final hattoriFirstComment = "工藤、なぞなぞや。一緒に考えようや。駅は駅でも　おしりにありそうな　赤い駅って　な〜んだ？？";
+  //String? conanText;
+  final firstComment = "あれれー、面白そうな問題見つけたよー！";
 
 
   @override
   void initState() {
     super.initState();
     _addMessage(types.TextMessage(
-      author: _hattori,
+      author: _conan,
       createdAt: DateTime.now().millisecondsSinceEpoch,
       id: randomString(),
-      text: hattoriFirstComment,
+      text: firstComment,
     ));
   }
 
@@ -66,7 +72,7 @@ class ChatRoomState extends State<ChatRoomHattori> {
         'https://u5fhd9aj1l.execute-api.ap-northeast-1.amazonaws.com/Prod/chat-comic';
     final Map<String, String> headers = {'Content-Type': 'application/json'};
     final Map<String, String> data = {
-      'input_text': hattoriText?? hattoriFirstComment,
+      'input_text': hattoriText?? firstComment,
       'userid': 'user_0000',
       'convid': 'Conan',
     };
@@ -75,7 +81,7 @@ class ChatRoomState extends State<ChatRoomHattori> {
 
     if (response.statusCode == 200) {
       var jsonResponse = json.decode(response.body);
-      conanText = jsonResponse['Response'];
+      String conanText = jsonResponse['Response'];
       debugPrint("conanText:$conanText");
       return jsonResponse['Response'];
     } else {
@@ -84,18 +90,27 @@ class ChatRoomState extends State<ChatRoomHattori> {
   }
 
   void _handleSendPressed(types.PartialText message) async {
-    // ここでコナン君が話す
-    final sendMessage = await fetchMessage();
-    final textMessage = types.TextMessage(
+    // ユーザーが送信したメッセージをチャットに追加
+    final userMessage = types.TextMessage(
       author: _user,
       createdAt: DateTime.now().millisecondsSinceEpoch,
       id: randomString(),
-      text: sendMessage,//message.text,
+      text: message.text,
     );
-    _addMessage(textMessage);
+    _addMessage(userMessage);
+
+    // ここでコナン君が話す
+    final sendMessage = await fetchMessage();
+    final conanMessage = types.TextMessage(
+      author: _conan,
+      createdAt: DateTime.now().millisecondsSinceEpoch,
+      id: randomString(),
+      text: sendMessage,
+    );
+    _addMessage(conanMessage);
 
     // 服部が応答
-    Map<String, dynamic> apiResponseData = await fetchResponseFromApi(textMessage.text);
+    Map<String, dynamic> apiResponseData = await fetchResponseFromApi(conanMessage.text);
     Future.delayed(const Duration(seconds: 1), () {
       final responseText = apiResponseData['Response'] ?? 'なんや';
       final responseMessage = types.TextMessage(
