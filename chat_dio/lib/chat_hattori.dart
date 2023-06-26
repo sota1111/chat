@@ -25,20 +25,20 @@ class ChatRoomState extends State<ChatRoomHattori> {
   );
   final types.User _conan = const types.User(
     id: 'conan',
-    firstName: "名探偵",
+    firstName: "",
     lastName: "コナン",
     imageUrl: ImageUrls.conanFace0,
   );
   String? hattoriText;
   //String? conanText;
-  final firstComment = "あれれー、面白そうな問題見つけたよー！";
+  final firstComment = "なぞなぞやるで、工藤";
 
 
   @override
   void initState() {
     super.initState();
     _addMessage(types.TextMessage(
-      author: _conan,
+      author: _hattori,
       createdAt: DateTime.now().millisecondsSinceEpoch,
       id: randomString(),
       text: firstComment,
@@ -67,17 +67,39 @@ class ChatRoomState extends State<ChatRoomHattori> {
   }
 
   // ここでコナン君が話す
-  Future<String> fetchMessage() async {
+  Future<String> fetchConanMessage(String message) async {
     const String url =
         'https://u5fhd9aj1l.execute-api.ap-northeast-1.amazonaws.com/Prod/chat-comic';
     final Map<String, String> headers = {'Content-Type': 'application/json'};
-    final Map<String, String> data = {
-      'input_text': hattoriText?? firstComment,
-      'userid': 'user_0000',
+    //服部のコメントをコナンのDBに格納
+    Map<String, String> commentData = {
+      'input_text': hattoriText??firstComment,
+      'userid': 'user_Conan',
       'convid': 'Conan',
+      'system': 'false',
+      'response_necessary': 'false',
     };
-    debugPrint("hattoriText:$hattoriText");
-    final response = await http.post(Uri.parse(url), headers: headers, body: json.encode(data));
+    await http.post(Uri.parse(url), headers: headers, body: json.encode(commentData));
+
+    //systemからヒントし、コナン君回答
+    commentData = {
+      'input_text': message,
+      'userid': 'user_Conan',
+      'convid': 'Conan',
+      'system': 'true',
+      'response_necessary': 'true',
+    };
+    final response = await http.post(Uri.parse(url), headers: headers, body: json.encode(commentData));
+
+    //systemからヒントし、服部のDBに格納
+    commentData = {
+      'input_text': message,
+      'userid': 'user_Heiji',
+      'convid': 'Heiji',
+      'system': 'true',
+      'response_necessary': 'false',
+    };
+    await http.post(Uri.parse(url), headers: headers, body: json.encode(commentData));
 
     if (response.statusCode == 200) {
       var jsonResponse = json.decode(response.body);
@@ -100,19 +122,19 @@ class ChatRoomState extends State<ChatRoomHattori> {
     _addMessage(userMessage);
 
     // ここでコナン君が話す
-    final sendMessage = await fetchMessage();
+    final receiveConanMessage = await fetchConanMessage(message.text);
     final conanMessage = types.TextMessage(
       author: _conan,
       createdAt: DateTime.now().millisecondsSinceEpoch,
       id: randomString(),
-      text: sendMessage,
+      text: receiveConanMessage,
     );
     _addMessage(conanMessage);
 
     // 服部が応答
-    Map<String, dynamic> apiResponseData = await fetchResponseFromApi(conanMessage.text);
+    Map<String, dynamic> receiveHattoriMessage = await fetchHattoriMessage(conanMessage.text);
     Future.delayed(const Duration(seconds: 1), () {
-      final responseText = apiResponseData['Response'] ?? 'なんや';
+      final responseText = receiveHattoriMessage['Response'] ?? 'なんや';
       final responseMessage = types.TextMessage(
         author: _hattori,
         createdAt: DateTime.now().millisecondsSinceEpoch,
@@ -123,21 +145,21 @@ class ChatRoomState extends State<ChatRoomHattori> {
     });
   }
 
-  Future<Map<String, dynamic>> fetchResponseFromApi(String inputText) async {
+  Future<Map<String, dynamic>> fetchHattoriMessage(String conanMessageText) async {
     const String url =
         'https://u5fhd9aj1l.execute-api.ap-northeast-1.amazonaws.com/Prod/chat-comic';
     final Map<String, String> headers = {'Content-Type': 'application/json'};
-    final Map<String, String> data = {
-      'input_text': inputText,
-      'userid': 'user_0001',
+    Map<String, String> commentData = {
+      'input_text': conanMessageText,
+      'userid': 'user_Heiji',
       'convid': 'Heiji',
+      'system': 'false',
+      'response_necessary': 'true',
     };
-    final response = await http.post(Uri.parse(url), headers: headers, body: json.encode(data));
+    final response = await http.post(Uri.parse(url), headers: headers, body: json.encode(commentData));
 
     if (response.statusCode == 200) {
       var jsonResponse = json.decode(response.body);
-      debugPrint(jsonResponse['Response']);
-      debugPrint(jsonResponse['Quote']);
       hattoriText = jsonResponse['Response'];
       return {
         'Response': jsonResponse['Response'],
