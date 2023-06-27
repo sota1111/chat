@@ -31,7 +31,7 @@ class ChatRoomState extends State<ChatRoomHattori> {
   );
   String? hattoriText;
   //String? conanText;
-  final firstComment = "なぞなぞやるで、工藤";
+  final firstComment = "なんや、何か聞きたいことあるんか？";
 
 
   @override
@@ -72,6 +72,9 @@ class ChatRoomState extends State<ChatRoomHattori> {
         'https://u5fhd9aj1l.execute-api.ap-northeast-1.amazonaws.com/Prod/chat-comic';
     final Map<String, String> headers = {'Content-Type': 'application/json'};
     //服部のコメントをコナンのDBに格納
+    debugPrint("hattoriText:$hattoriText");
+    hattoriText ??= firstComment;
+    hattoriText = hattoriText?.replaceAll('工藤', 'コナン');
     Map<String, String> commentData = {
       'input_text': hattoriText??firstComment,
       'userid': 'user_Conan',
@@ -81,22 +84,24 @@ class ChatRoomState extends State<ChatRoomHattori> {
     };
     await http.post(Uri.parse(url), headers: headers, body: json.encode(commentData));
 
-    //systemからヒントし、コナン君回答
+    //systemからヒントし、コナン君回答 DB格納
+    debugPrint("userText:$message");
     commentData = {
-      'input_text': message,
+      'input_text': 'user:$message',
       'userid': 'user_Conan',
       'convid': 'Conan',
-      'system': 'true',
+      'system': 'false',
       'response_necessary': 'true',
     };
     final response = await http.post(Uri.parse(url), headers: headers, body: json.encode(commentData));
 
     //systemからヒントし、服部のDBに格納
+    debugPrint("conanText:$response");
     commentData = {
-      'input_text': message,
+      'input_text': 'user:$message',
       'userid': 'user_Heiji',
       'convid': 'Heiji',
-      'system': 'true',
+      'system': 'false',
       'response_necessary': 'false',
     };
     await http.post(Uri.parse(url), headers: headers, body: json.encode(commentData));
@@ -122,7 +127,9 @@ class ChatRoomState extends State<ChatRoomHattori> {
     _addMessage(userMessage);
 
     // ここでコナン君が話す
-    final receiveConanMessage = await fetchConanMessage(message.text);
+    String receiveConanMessage = await fetchConanMessage(message.text);
+    RegExp exp = RegExp(r"^[^:]*:");
+    receiveConanMessage = receiveConanMessage.replaceAll(exp, '');
     final conanMessage = types.TextMessage(
       author: _conan,
       createdAt: DateTime.now().millisecondsSinceEpoch,
@@ -134,7 +141,9 @@ class ChatRoomState extends State<ChatRoomHattori> {
     // 服部が応答
     Map<String, dynamic> receiveHattoriMessage = await fetchHattoriMessage(conanMessage.text);
     Future.delayed(const Duration(seconds: 1), () {
-      final responseText = receiveHattoriMessage['Response'] ?? 'なんや';
+      String responseText = receiveHattoriMessage['Response'] ?? 'なんや';
+      RegExp exp = RegExp(r"^[^:]*:");
+      responseText = responseText.replaceAll(exp, '');
       final responseMessage = types.TextMessage(
         author: _hattori,
         createdAt: DateTime.now().millisecondsSinceEpoch,
