@@ -43,6 +43,27 @@ class ChatRoomState extends State<ChatRoomHattori> {
       id: randomString(),
       text: firstComment,
     ));
+
+    initializeAsyncMethods();
+  }
+
+  Future<void> initializeAsyncMethods() async {
+    const String url = 'https://u5fhd9aj1l.execute-api.ap-northeast-1.amazonaws.com/Prod/chat-comic';
+    final Map<String, String> headers = {'Content-Type': 'application/json'};
+    Map<String, String> jsonData = {
+      'userid': 'user_Conan',
+      'convid': 'Conan',
+      'method': 'Delete',
+    };
+    var response = await http.post(Uri.parse(url), headers: headers, body: json.encode(jsonData));
+    debugPrint('Response status: ${response.statusCode}');
+    jsonData = {
+      'userid': 'user_Heiji',
+      'convid': 'Heiji',
+      'method': 'Delete',
+    };
+    response = await http.post(Uri.parse(url), headers: headers, body: json.encode(jsonData));
+    debugPrint('Response status: ${response.statusCode}');
   }
 
   @override
