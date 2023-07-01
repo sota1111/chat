@@ -67,22 +67,6 @@ class ChatRoomState extends State<ChatRoom> {
     );
   }
 
-  void _addNetworkImageAsMessage(String imageUrl) {
-    final message = types.ImageMessage(
-      author: _user,
-      createdAt: DateTime.now().millisecondsSinceEpoch,
-      id: randomString(),
-      // ここで他のプロパティを設定する必要があるかもしれません
-      uri: imageUrl,
-      name: 'image', // 画像の名前 (任意で設定)
-      size: 1, // 画像のサイズ (必要に応じて設定)
-      width: 100, // 画像の幅 (必要に応じて設定)
-      height: 100, // 画像の高さ (必要に応じて設定)
-    );
-
-    _addMessage(message);
-  }
-
   void _addMessage(types.Message message) {
     setState(() {
       _messages.insert(0, message);
@@ -106,8 +90,6 @@ class ChatRoomState extends State<ChatRoom> {
       final responseEmotion = apiResponseData['MaxIndex_Emotion'] ?? '0';
       final floorUrl = apiResponseData['FloorUrl'] ?? 'None';
       final needMap = apiResponseData['NeedMap'] ?? 'false';
-      print(floorUrl);
-
 
       Map<String, String> emotionToImageUrl = {
         '0': ImageUrls.hospiFace0,
