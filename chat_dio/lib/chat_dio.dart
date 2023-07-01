@@ -16,7 +16,7 @@ class ChatRoomDio extends StatefulWidget {
 
 class ChatRoomState extends State<ChatRoomDio> {
   final List<types.Message> _messages = [];
-  final _user = const types.User(id: '82091008-a484-4a89-ae75-a22bf8d6f3ac');
+  final _user = const types.User(id: '82091008-a484-4a89-ae75-a22bf8e6f3ac');
   final types.User _dio = const types.User(
     id: 'dio',
     firstName: "Dio",
@@ -34,6 +34,19 @@ class ChatRoomState extends State<ChatRoomDio> {
       id: randomString(),
       text: "このディオに何か聞きたいことがあるか。",
     ));
+
+    initializeAsyncMethods();
+  }
+  Future<void> initializeAsyncMethods() async {
+    const String url = 'https://u5fhd9aj1l.execute-api.ap-northeast-1.amazonaws.com/Prod/chat-comic';
+    final Map<String, String> headers = {'Content-Type': 'application/json'};
+    Map<String, String> jsonData = {
+      'userid': 'user_Dio',
+      'convid': 'Dio',
+      'method': 'Delete',
+    };
+    var response = await http.post(Uri.parse(url), headers: headers, body: json.encode(jsonData));
+    debugPrint('Response status: ${response.statusCode}');
   }
 
   @override
@@ -106,7 +119,7 @@ class ChatRoomState extends State<ChatRoomDio> {
     final Map<String, String> headers = {'Content-Type': 'application/json'};
     final Map<String, String> data = {
       'input_text': inputText,
-      'userid': 'user_0001',
+      'userid': 'user_Dio',
       'convid': 'Dio',
     };
     final response = await http.post(Uri.parse(url), headers: headers, body: json.encode(data));

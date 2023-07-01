@@ -34,6 +34,19 @@ class ChatRoomState extends State<ChatRoom> {
       id: randomString(),
       text: "こんにちは、ホスピです。\n何かお困りですか？",
     ));
+
+    initializeAsyncMethods();
+  }
+  Future<void> initializeAsyncMethods() async {
+    const String url = 'https://as7ol49p7g.execute-api.ap-northeast-1.amazonaws.com/Prod/chatroom';
+    final Map<String, String> headers = {'Content-Type': 'application/json'};
+    Map<String, String> jsonData = {
+      'userid': 'user_Hospi',
+      'convid': 'hospi',
+      'method': 'Delete',
+    };
+    var response = await http.post(Uri.parse(url), headers: headers, body: json.encode(jsonData));
+    debugPrint('Response status: ${response.statusCode}');
   }
 
   @override
@@ -143,7 +156,7 @@ class ChatRoomState extends State<ChatRoom> {
     final Map<String, String> headers = {'Content-Type': 'application/json'};
     final Map<String, String> data = {
       'input_text': inputText,
-      'userid': 'user_0001',
+      'userid': 'user_Hospi',
       'convid': 'hospi',
     };
     final response = await http.post(Uri.parse(url), headers: headers, body: json.encode(data));
