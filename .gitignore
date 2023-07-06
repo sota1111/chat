@@ -44,3 +44,6 @@ app.*.map.json
 /android/app/release
 learn_langchain/test/.env
 learn_langchain/search/.env
+chat_sam/chat-sam/template.yaml
+chat_sam/ChatSam/.aws-sam/*
+chat_sam/ChatSam/template.yaml

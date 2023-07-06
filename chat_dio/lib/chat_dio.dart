@@ -38,7 +38,7 @@ class ChatRoomState extends State<ChatRoomDio> {
     initializeAsyncMethods();
   }
   Future<void> initializeAsyncMethods() async {
-    const String url = 'https://u5fhd9aj1l.execute-api.ap-northeast-1.amazonaws.com/Prod/chat-comic';
+    const String url = 'https://1fi888qkjc.execute-api.ap-northeast-1.amazonaws.com/Prod/chat-comicc';
     final Map<String, String> headers = {'Content-Type': 'application/json'};
     Map<String, String> jsonData = {
       'userid': 'user_Dio',
@@ -115,7 +115,7 @@ class ChatRoomState extends State<ChatRoomDio> {
 
   Future<Map<String, dynamic>> fetchResponseFromApi(String inputText) async {
     const String url =
-        'https://u5fhd9aj1l.execute-api.ap-northeast-1.amazonaws.com/Prod/chat-comic';
+        'https://1fi888qkjc.execute-api.ap-northeast-1.amazonaws.com/Prod/chat-comic';
     final Map<String, String> headers = {'Content-Type': 'application/json'};
     final Map<String, String> data = {
       'input_text': inputText,

@@ -48,7 +48,7 @@ class ChatRoomState extends State<ChatRoomHattori> {
   }
 
   Future<void> initializeAsyncMethods() async {
-    const String url = 'https://u5fhd9aj1l.execute-api.ap-northeast-1.amazonaws.com/Prod/chat-comic';
+    const String url = 'https://1fi888qkjc.execute-api.ap-northeast-1.amazonaws.com/Prod/chat-comic';
     final Map<String, String> headers = {'Content-Type': 'application/json'};
     Map<String, String> jsonData = {
       'userid': 'user_Conan',
@@ -90,7 +90,7 @@ class ChatRoomState extends State<ChatRoomHattori> {
   // ここでコナン君が話す
   Future<String> fetchConanMessage(String message) async {
     const String url =
-        'https://u5fhd9aj1l.execute-api.ap-northeast-1.amazonaws.com/Prod/chat-comic';
+        'https://1fi888qkjc.execute-api.ap-northeast-1.amazonaws.com/Prod/chat-comic';
     final Map<String, String> headers = {'Content-Type': 'application/json'};
     //服部のコメントをコナンのDBに格納
     debugPrint("hattoriText:$hattoriText");
@@ -177,7 +177,7 @@ class ChatRoomState extends State<ChatRoomHattori> {
 
   Future<Map<String, dynamic>> fetchHattoriMessage(String conanMessageText) async {
     const String url =
-        'https://u5fhd9aj1l.execute-api.ap-northeast-1.amazonaws.com/Prod/chat-comic';
+        'https://1fi888qkjc.execute-api.ap-northeast-1.amazonaws.com/Prod/chat-comic';
     final Map<String, String> headers = {'Content-Type': 'application/json'};
     Map<String, String> commentData = {
       'input_text': conanMessageText,

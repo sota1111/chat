@@ -1,0 +1,18 @@
+{
+    "configurations": [
+        {
+            "type": "aws-sam",
+            "request": "direct-invoke",
+            "name": "ChatSam:ChatSam",
+            "invokeTarget": {
+                "target": "template",
+                "templatePath": "${workspaceFolder}/ChatSam/template.yaml",
+                "logicalId": "ChatSam"
+            },
+            "lambda": {
+                "payload": {},
+                "environmentVariables": {}
+            }
+        }
+    ]
+}
