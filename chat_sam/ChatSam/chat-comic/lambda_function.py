@@ -1,11 +1,39 @@
 import json
 import boto3
-from config import DYNAMODB_TABLE_NAME
+import openai
+from langchain.embeddings.openai import OpenAIEmbeddings
+from langchain.text_splitter import CharacterTextSplitter
+from langchain.vectorstores import Chroma
+
+from config import DYNAMODB_TABLE_NAME, OPENAI_API_KEY
 from utils import get_max_conversation_id, get_chat_response_func, get_chat_response, store_conversation, decimal_to_int, delete_items_with_secondary_index
 from role.role_dio import get_chat_messages_dio, get_chat_functions_dio, process_response_message_dio
-from role.role_heiji import get_chat_messages_heiji, get_chat_functions_heiji, process_response_message_heiji
-from role.role_conan import get_chat_messages_conan, get_chat_functions_conan, process_response_message_conan
-import re
+from role.role_tetris import get_chat_messages_tetris, get_chat_functions_tetris, process_response_message_tetris
+from role.role_heiji import get_chat_messages_heiji, process_response_message_heiji
+from role.role_conan import get_chat_messages_conan, process_response_message_conan
+
+
+def read_from_s3():
+        s3 = boto3.client('s3')
+        bucket = 'chat-tetris' # バケット名を指定します
+        key = 'doc_tetris/tetris.md' # マークダウンファイルの名前を指定します
+        object = s3.get_object(Bucket=bucket, Key=key)
+        long_text = object['Body'].read().decode('utf-8')
+
+        text_splitter = CharacterTextSplitter(
+            separator = "\n\n",
+            chunk_size = 500,
+            chunk_overlap = 100,
+            length_function = len,
+        )
+        texts = text_splitter.split_text(long_text)
+        print(texts)
+        docsearch = Chroma.from_texts(texts, OpenAIEmbeddings(openai_api_key=OPENAI_API_KEY))
+
+        query = "2ライン消しの点数は？"
+        print(f"\n\n{query}")
+        docs = docsearch.similarity_search(query)
+        print(docs[0].page_content)
 
 def lambda_handler(event, context):
     dynamodb = boto3.resource('dynamodb')
@@ -14,9 +42,12 @@ def lambda_handler(event, context):
     data = json.loads(event["body"])
     user_id = data['userid']
     conv_id = data['convid']
-    print('conv_id:', conv_id)
+    #print('conv_id:', conv_id)
     print('user_id:', user_id)
-    
+
+    if user_id == "Tetris":
+        print('read_from_s3')
+        read_from_s3()
 
     if data.get('method') == "Delete":
         try:
@@ -52,6 +83,9 @@ def lambda_handler(event, context):
     if conv_id == "Dio":
         messages = get_chat_messages_dio()
         functions = get_chat_functions_dio()
+    elif conv_id == "Tetris":
+        messages = get_chat_messages_tetris()
+        functions = get_chat_functions_tetris()
     elif conv_id == "Heiji":
         messages = get_chat_messages_heiji()
     elif conv_id == "Conan":
@@ -85,6 +119,8 @@ def lambda_handler(event, context):
     else:
         if conv_id == "Dio":
             response = get_chat_response_func(messages, functions)
+        elif conv_id == "Tetris":
+            response = get_chat_response_func(messages, functions)
         elif conv_id == "Heiji":
             response = get_chat_response(messages)
         elif conv_id == "Conan":
@@ -96,6 +132,8 @@ def lambda_handler(event, context):
         # 応答を取得
         if conv_id == "Dio":
             content, quote, quote_num, url = process_response_message_dio(response)
+        elif conv_id == "Tetris":
+            content, quote, quote_num, url = process_response_message_tetris(response)
         elif conv_id == "Heiji":
             content, quote, quote_num, url = process_response_message_heiji(response)
         elif conv_id == "Conan":
