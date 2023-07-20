@@ -47,3 +47,4 @@ learn_langchain/search/.env
 chat_sam/chat-sam/template.yaml
 chat_sam/ChatSam/.aws-sam/*
 chat_sam/ChatSam/template.yaml
+chat_docker/chat-docker/template.yaml
