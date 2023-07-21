@@ -17,5 +17,6 @@ class ImageUrls {
 
   static const hattoriFace0 = "https://images-comics.s3.ap-northeast-1.amazonaws.com/Conan/HeijiFace.png";
   static const conanFace0 = "https://images-comics.s3.ap-northeast-1.amazonaws.com/Conan/ConanFace.png";
+  static const tetrisFace0 = "https://chat-tetris.s3.ap-northeast-1.amazonaws.com/genbaneko001.jpg";
 }
 

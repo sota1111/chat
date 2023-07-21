@@ -2,6 +2,7 @@ import 'package:chat_dio/chat_hattori.dart';
 import 'package:flutter/material.dart';
 import 'chat_hospi.dart';
 import 'chat_dio.dart';
+import 'chat_tetris.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -46,6 +47,14 @@ class AppDrawer extends StatelessWidget {
             onTap: () {
               Navigator.pushReplacement(context,
                   MaterialPageRoute(builder: (BuildContext context) => const ChatRoomHattori()));
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.message),
+            title: const Text('tetris質問Box'),
+            onTap: () {
+              Navigator.pushReplacement(context,
+                  MaterialPageRoute(builder: (BuildContext context) => const ChatRoomTetris()));
             },
           ),
         ],
