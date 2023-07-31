@@ -7,9 +7,33 @@ from langchain import OpenAI
 from llama_index import VectorStoreIndex, SimpleDirectoryReader
 from llama_index import StorageContext, load_index_from_storage
 
-# .envファイルから環境変数を読み込みます。
-load_dotenv()
-openai.api_key = os.getenv('API_Key')
+from botocore.exceptions import ClientError
+
+def get_secret():
+
+    secret_name = "openai"
+    region_name = "ap-northeast-1"
+
+    # Create a Secrets Manager client
+    session = boto3.session.Session()
+    client = session.client(
+        service_name='secretsmanager',
+        region_name=region_name
+    )
+
+    try:
+        get_secret_value_response = client.get_secret_value(
+            SecretId=secret_name
+        )
+    except ClientError as e:
+        # For a list of exceptions thrown, see
+        # https://docs.aws.amazon.com/secretsmanager/latest/apireference/API_GetSecretValue.html
+        raise e
+
+    # Decrypts secret using the associated KMS key.
+    secret = get_secret_value_response['SecretString']
+    key_value = json.loads(secret)
+    openai.api_key = key_value['openai']    
 
 # イベントからメッセージを取得
 def get_message_from_event(event):
@@ -38,6 +62,9 @@ def generate_success_response(response):
 
 # Lambdaハンドラー関数
 def lambda_handler(event, context):
+
+    get_secret()
+
     try:
         message = get_message_from_event(event)
     except ValueError as error:
