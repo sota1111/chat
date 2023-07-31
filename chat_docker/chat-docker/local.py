@@ -31,7 +31,7 @@ def main():
 
     # クエリの実行
     query_engine = index.as_query_engine()
-    response = query_engine.query("field_infoは何を意味していますか?")
+    response = query_engine.query("Dockerイメージの取得途中で止まる原因は?")
     print("response: ", response)
 
 if __name__ == "__main__":
