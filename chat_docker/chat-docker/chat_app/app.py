@@ -77,6 +77,7 @@ def lambda_handler(event, context):
     # クエリの実行
     query_engine = index.as_query_engine()
     response = query_engine.query(message)
+    #response = 'hello world'
     print("response: ", response)
 
     return generate_success_response(response)

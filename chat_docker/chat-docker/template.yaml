@@ -12,7 +12,7 @@ Globals:
     MemorySize: 512
 
 Resources:
-  ChatDockerFunction:
+  ChatFunc:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
       PackageType: Image
@@ -23,19 +23,19 @@ Resources:
         - AmazonS3FullAccess
         - SecretsManagerReadWrite
       Events:
-        HelloWorld:
+        ChatAPP:
           Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
           Properties:
-            Path: /hello
+            Path: /ask
             Method: get
-        HelloWorldPost:
+        ChatAPPPost:
           Type: Api 
           Properties:
-            Path: /hello
+            Path: /ask
             Method: post
 
     Metadata:
       Dockerfile: Dockerfile
-      DockerContext: ./hello_world
+      DockerContext: ./chat_app
       DockerTag: python3.9-v1
 

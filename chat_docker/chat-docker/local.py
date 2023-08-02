@@ -18,7 +18,7 @@ def main():
 
     # モデルの読み込み
     if(0):
-        documents = SimpleDirectoryReader(input_dir="./hello_world/data").load_data()
+        documents = SimpleDirectoryReader(input_dir="./chat_app/data").load_data()
         print("documents: ", documents)
         index = VectorStoreIndex.from_documents(documents)
         # 保存
