@@ -62,6 +62,12 @@ def generate_success_response(response):
 
 # Lambdaハンドラー関数
 def lambda_handler(event, context):
+    
+    # HTTPメソッドがGETの場合、"hello world"を返す
+    http_method = event.get('httpMethod', '')
+    if http_method == 'GET':
+        return generate_success_response('hello world!')
+
 
     get_secret()
 
@@ -77,7 +83,7 @@ def lambda_handler(event, context):
     # クエリの実行
     query_engine = index.as_query_engine()
     response = query_engine.query(message)
-    #response = 'hello world'
     print("response: ", response)
 
     return generate_success_response(response)
+

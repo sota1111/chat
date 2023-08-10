@@ -5,6 +5,11 @@ Description: >
 
   Sample SAM Template for chat-docker
 
+Parameters:
+  UserPoolArn:
+    Type: String
+    Description: The ARN of the existing User Pool
+    
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
   Function:
@@ -28,14 +33,30 @@ Resources:
           Properties:
             Path: /ask
             Method: get
+            RestApiId:
+              Ref: ChatApi
+            Auth:
+              Authorizer: MyCognitoAuthorizer
         ChatAPPPost:
           Type: Api 
           Properties:
             Path: /ask
             Method: post
-
+            RestApiId:
+              Ref: ChatApi
+            Auth:
+              Authorizer: MyCognitoAuthorizer
     Metadata:
       Dockerfile: Dockerfile
       DockerContext: ./chat_app
       DockerTag: python3.9-v1
 
+  ChatApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+      Auth:
+        DefaultAuthorizer: MyCognitoAuthorizer
+        Authorizers:
+          MyCognitoAuthorizer:
+            UserPoolArn: !Ref UserPoolArn
