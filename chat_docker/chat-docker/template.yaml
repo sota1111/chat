@@ -10,7 +10,6 @@ Parameters:
     Type: String
     Description: The ARN of the existing User Pool
     
-# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
   Function:
     Timeout: 120
@@ -18,7 +17,7 @@ Globals:
 
 Resources:
   ChatFunc:
-    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Type: AWS::Serverless::Function
     Properties:
       PackageType: Image
       Architectures:
@@ -29,7 +28,7 @@ Resources:
         - SecretsManagerReadWrite
       Events:
         ChatAPP:
-          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Type: Api
           Properties:
             Path: /ask
             Method: get
