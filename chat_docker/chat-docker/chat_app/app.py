@@ -79,7 +79,6 @@ def lambda_handler(event, context):
 
     try:
         message = get_message_from_event(event)
-        return generate_success_response(message)
     except ValueError as error:
         return generate_error_response(str(error))
 
