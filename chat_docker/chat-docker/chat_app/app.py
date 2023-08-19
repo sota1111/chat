@@ -37,10 +37,16 @@ def get_secret():
 
 # イベントからメッセージを取得
 def get_message_from_event(event):
+    body_content = event.get('body', None)
+    
+    if not body_content:
+        raise ValueError("The 'body' field in the event is missing or empty.")
+    
     try:
-        return json.loads(event['body'])['input_text']
+        return json.loads(body_content)['input_text']
     except KeyError:
         raise ValueError("Invalid input. 'input_text' key is required.")
+
 
 # エラーレスポンス関数
 def generate_error_response(message):
@@ -66,13 +72,14 @@ def lambda_handler(event, context):
     # HTTPメソッドがGETの場合、"hello world"を返す
     http_method = event.get('httpMethod', '')
     if http_method == 'GET':
-        return generate_success_response('hello world!')
+        return generate_success_response('hello world')
 
 
     get_secret()
 
     try:
         message = get_message_from_event(event)
+        return generate_success_response(message)
     except ValueError as error:
         return generate_error_response(str(error))
 
