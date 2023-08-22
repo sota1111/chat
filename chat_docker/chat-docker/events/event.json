@@ -1,7 +1,6 @@
 {
   "httpMethod": "POST",
-  "body": "{\"input_text\": \"Dockerイメージの取得途中で止まる原因は?\"}",
+  "body": "{\"identity_id\": \"id_hoge\", \"input_text\": \"ミノの役割は?\", \"character_name\": \"test_user\"}",
   "resource": "/ask",
   "path": "/ask"
-    
 }

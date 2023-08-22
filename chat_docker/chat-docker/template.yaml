@@ -45,6 +45,16 @@ Resources:
               Ref: ChatApi
             Auth:
               Authorizer: MyCognitoAuthorizer
+        ChatAPPGet:
+          Type: Api 
+          Properties:
+            Path: /ask
+            Method: put
+            RestApiId:
+              Ref: ChatApi
+            Auth:
+              Authorizer: MyCognitoAuthorizer
+
     Metadata:
       Dockerfile: Dockerfile
       DockerContext: ./chat_app

@@ -6,8 +6,10 @@ from dotenv import load_dotenv
 from langchain import OpenAI
 from llama_index import VectorStoreIndex, SimpleDirectoryReader
 from llama_index import StorageContext, load_index_from_storage
-
 from botocore.exceptions import ClientError
+from config import DYNAMODB_TABLE_NAME
+from utils import get_max_conversation_id, get_chat_response_func, get_chat_response, store_conversation, decimal_to_int, delete_items_with_secondary_index
+from role.role_tetris import get_chat_messages_tetris, get_chat_functions_tetris
 
 def get_secret():
 
@@ -66,22 +68,7 @@ def generate_success_response(response):
         }),
     }
 
-# Lambdaハンドラー関数
-def lambda_handler(event, context):
-    
-    # HTTPメソッドがGETの場合、"hello world"を返す
-    http_method = event.get('httpMethod', '')
-    if http_method == 'GET':
-        return generate_success_response('hello world')
-
-
-    get_secret()
-
-    try:
-        message = get_message_from_event(event)
-    except ValueError as error:
-        return generate_error_response(str(error))
-
+def search_index(message):
     # indexの読み込み
     storage_context = StorageContext.from_defaults(persist_dir='./storage')
     index = load_index_from_storage(storage_context)
@@ -90,6 +77,74 @@ def lambda_handler(event, context):
     query_engine = index.as_query_engine()
     response = query_engine.query(message)
     print("response: ", response)
+    return response
 
-    return generate_success_response(response)
+# Lambdaハンドラー関数
+def lambda_handler(event, context):
+    # HTTPメソッドがGETの場合、"hello world"を返す
+    http_method = event.get('httpMethod', '')
+    if http_method == 'GET':
+        return generate_success_response('hello world')
+    elif http_method == 'PUT':#処理はDeleteだが、bodyを取るので、Put methodで定義
+        try:
+            data = json.loads(event["body"])
+            user_id = data['identity_id']
+            char_name = data['character_name']
+            delete_items_with_secondary_index(user_id, char_name)
+            return {
+                    'statusCode': 200,
+                    'body': json.dumps({
+                        'message': 'Delete operation completed',
+                    }),
+                    'headers': {
+                        'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': '*',
+                        'Access-Control-Allow-Credentials': True,
+                    },
+                }
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            return {
+                'statusCode': 500,
+                'body': json.dumps({
+                    'message': f'Error during delete operation: {e}',
+                }),
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Credentials': True,
+                },
+            }
+
+
+    elif http_method == 'POST':
+        data = json.loads(event["body"])
+        user_id = data['identity_id']
+        char_name = data['character_name']
+        input_text = data['input_text']
+        get_secret()
+        # メッセージを取得
+        try:
+            message = get_message_from_event(event)
+        except ValueError as error:
+            return generate_error_response(str(error))
+        
+        # GPT API動作 ここにfunctionありのapiを実装する
+        # 過去の応答を取得
+        messages = get_chat_messages_tetris()
+        #functions = get_chat_functions_tetris() #最初はfunction機能は使わない
+        max_order_id,items = get_max_conversation_id(user_id, char_name)
+        #今までの対話をmessagesに並べる
+        messages.extend([{"role": item["role"], "content": item["content"]} for item in items])
+        messages.append({"role": "user", "content": data['input_text']})
+        #openAIのAPIを叩く
+        response = get_chat_response(messages)
+        #search_result = search_index(search_content) #最初はfunction機能は使わない
+        # DynamoDBにトーク履歴を記録
+        store_conversation(user_id, char_name, max_order_id, input_text, "user")
+        store_conversation(user_id, char_name, max_order_id + 1, response, "assistant")
+
+
+        
+        return generate_success_response(response)
 
