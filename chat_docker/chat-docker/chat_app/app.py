@@ -30,9 +30,46 @@ def handle_put_request(event):
             print(f"An error occurred: {e}")
             return generate_server_error_response(f'Error during delete operation: {e}')
     
-    except Exception as e:
+    except KeyError as e:
         print(f"An error occurred: {e}")
         return generate_client_error_response(f'Error during delete operation: {e}')
+    
+def gpt_function_call(response_data, messages, functions, user_id, char_name, max_order_id, input_text):
+    print(f"function call defined\n")
+    # gptが定義した関数名や引数を取得する
+    call_data = response_data["message"]["function_call"]
+    func_name = call_data["name"]
+    args = eval(call_data["arguments"])
+    #print(f"func_name: {func_name}, args: {args}")
+    
+    # 定義された関数を実行
+    func = globals()[func_name]
+    function_response = func(**args)
+    print(f"function_response: {function_response}")
+
+    # 2回目のAPI実行のための関数の引数を作成
+    function_args = create_function_args(func_name, args)
+    #print(f"function_args: {function_args}")
+    messages.append({"role": "assistant", "content": None, "function_call": function_args})
+    messages.append({"role": "function", "content": function_response, "name": func_name})
+
+    response_2nd = get_chat_response_func(messages, functions)
+    response_content = response_2nd.choices[0]["message"]["content"]
+
+    # DynamoDBにトーク履歴を記録
+    store_conversation(user_id, char_name, max_order_id + 0, "user", input_text)
+    store_conversation(user_id, char_name, max_order_id + 1, "assistant", None, name=None, function_call=function_args)
+    store_conversation(user_id, char_name, max_order_id + 2, "function", function_response, name=func_name, function_call=None)
+    store_conversation(user_id, char_name, max_order_id + 3, "assistant", response_content)
+
+    return response_content
+
+def gpt_simple_response(response_data, user_id, char_name, max_order_id, input_text):
+    print(f"function call undefined\n")
+    response_content = response_data["message"]["content"]
+    store_conversation(user_id, char_name, max_order_id + 0, "user", input_text)
+    store_conversation(user_id, char_name, max_order_id + 1, "assistant", response_content)
+    return response_content
 
 def handle_post_request(event):
     get_secret()
@@ -48,65 +85,35 @@ def handle_post_request(event):
         return generate_client_error_response(f'Error during delete operation: {e}')
     
     # 過去の応答を取得
-    messages = get_chat_messages_tetris()
-    functions = get_chat_functions_tetris()
-    max_order_id,items = get_max_conversation_id(user_id, char_name)
+    try:
+        messages = get_chat_messages_tetris()
+        functions = get_chat_functions_tetris()
+        max_order_id,items = get_max_conversation_id(user_id, char_name)
 
-    #今までの対話をmessagesに並べる
-    messages.extend([
-        {
-            "role": item["role"],
-            "content": item["content"],
-            **({"name": item["name"]} if "name" in item else {}),
-            **({"function_call": item["function_call"]} if "function_call" in item else {})
-        } 
-        for item in items
-    ])
-    messages.append({"role": "user", "content": data['input_text']})
-    
-    #openAIのAPIを叩く
-    if(0):#function callを使わない場合
-        response = get_chat_response(messages)
-        response_content = response["choices"][0]["message"]["content"]
-        store_conversation(user_id, char_name, max_order_id + 0, "user", input_text)
-        store_conversation(user_id, char_name, max_order_id + 1, "assistant", response_content)
-    else:
+        #今までの対話をmessagesに並べる
+        messages.extend([
+            {
+                "role": item["role"],
+                "content": item["content"],
+                **({"name": item["name"]} if "name" in item else {}),
+                **({"function_call": item["function_call"]} if "function_call" in item else {})
+            } 
+            for item in items
+        ])
+        messages.append({"role": "user", "content": data['input_text']})
+        
+        #openAIのAPIを叩く
         response_1st = get_chat_response_func(messages, functions)
         response_data = response_1st["choices"][0]
         if response_data["finish_reason"] == "function_call":
-            print(f"function call defined\n")
             if response_data["message"]["function_call"]["name"]:
-                # 関数名や引数を取得する
-                call_data = response_data["message"]["function_call"]
-                func_name = call_data["name"]
-                args = eval(call_data["arguments"])
-                print(f"func_name: {func_name}, args: {args}")
-                # 選択された関数を実行
-                func = globals()[func_name]
-                function_response = func(**args)
-                print(f"function_response: {function_response}")
-
-                # 2回目のAPI実行
-                function_args = create_function_args(func_name, args)
-                print(f"function_args: {function_args}")
-                messages.append({"role": "assistant", "content": None, "function_call": function_args})
-                messages.append({"role": "function", "content": function_response, "name": func_name})
-                #print(f"messages: {messages}")
-
-                response_2nd = get_chat_response_func(messages, functions)
-                response_content = response_2nd.choices[0]["message"]["content"]
-
-                # DynamoDBにトーク履歴を記録 #store_conversation(user_id, char_name, max_order_id, role, content, name=None, function_call=None):
-                store_conversation(user_id, char_name, max_order_id + 0, "user", input_text)
-                store_conversation(user_id, char_name, max_order_id + 1, "assistant", None, name=None, function_call=function_args)
-                store_conversation(user_id, char_name, max_order_id + 2, "function", function_response, name=func_name, function_call=None)
-                store_conversation(user_id, char_name, max_order_id + 3, "assistant", response_content)
-
+                response_content = gpt_function_call(response_data, messages, functions, user_id, char_name, max_order_id, input_text)
         else:
-            print(f"function call undefined\n")
-            response_content = response_1st["choices"][0]["message"]["content"]
-            store_conversation(user_id, char_name, max_order_id + 0, "user", input_text)
-            store_conversation(user_id, char_name, max_order_id + 1, "assistant", response_content)
+            response_content = gpt_simple_response(response_data, user_id, char_name, max_order_id, input_text)
+        return generate_success_response(response_content)
+        
+    except Exception as e:
+        return generate_server_error_response(f'Error during post operation: {e}')
 
 # Lambdaハンドラー関数
 def lambda_handler(event, context):
