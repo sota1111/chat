@@ -1,13 +1,35 @@
 import boto3
 import openai
 import json
-from decimal import Decimal
-from config import DYNAMODB_TABLE_NAME, DYNAMODB_INDEX_NAME, OPENAI_MODEL_NAME
-import re
+from tools.config import DYNAMODB_TABLE_NAME, DYNAMODB_INDEX_NAME, OPENAI_MODEL_NAME
+from botocore.exceptions import ClientError
 from boto3.dynamodb.conditions import Key
 
-def decimal_to_int(obj):
-    return int(obj) if isinstance(obj, Decimal) else obj
+def get_secret():
+
+    secret_name = "openai"
+    region_name = "ap-northeast-1"
+
+    # Create a Secrets Manager client
+    session = boto3.session.Session()
+    client = session.client(
+        service_name='secretsmanager',
+        region_name=region_name
+    )
+
+    try:
+        get_secret_value_response = client.get_secret_value(
+            SecretId=secret_name
+        )
+    except ClientError as e:
+        # For a list of exceptions thrown, see
+        # https://docs.aws.amazon.com/secretsmanager/latest/apireference/API_GetSecretValue.html
+        raise e
+
+    # Decrypts secret using the associated KMS key.
+    secret = get_secret_value_response['SecretString']
+    key_value = json.loads(secret)
+    openai.api_key = key_value['openai']  
 
 def get_max_conversation_id(user_id, char_name):
     dynamodb = boto3.resource('dynamodb')
@@ -69,7 +91,7 @@ def get_chat_response_func(messages, functions):
     )
     return response    
 
-def store_conversation(user_id, char_name, max_order_id, content, role):
+def store_conversation(user_id, char_name, max_order_id, role, content, name=None, function_call=None):
     dynamodb = boto3.resource('dynamodb')
     table = dynamodb.Table(DYNAMODB_TABLE_NAME)
     """Store conversation in DynamoDB."""
@@ -77,10 +99,17 @@ def store_conversation(user_id, char_name, max_order_id, content, role):
         'user_id': user_id,
         'order_id': (max_order_id + 1),
         'char_name': char_name,
-        'content': content,
-        'role': role
+        'role': role,
+        'content': content
     }
+    
+    if name:  # nameが存在している（None以外）場合
+        item['name'] = name
+    if function_call:  # function_callが存在している（None以外）場合
+        item['function_call'] = function_call
+        
     table.put_item(Item=item)
+
 
 def create_function_args(func_name, args):
     function_call = {
