@@ -55,11 +55,10 @@ def get_chat_response(messages):
         #n=1,
         #temperature=0.5
     )
-    content = response["choices"][0]["message"]["content"]
-    return content
+    return response
 
 def get_chat_response_func(messages, functions):
-    return openai.ChatCompletion.create(
+    response = openai.ChatCompletion.create(
         model=OPENAI_MODEL_NAME,
         messages=messages,
         functions=functions,
@@ -68,6 +67,7 @@ def get_chat_response_func(messages, functions):
         #n=1,utio
         #temperature=0.5
     )
+    return response    
 
 def store_conversation(user_id, char_name, max_order_id, content, role):
     dynamodb = boto3.resource('dynamodb')
@@ -81,3 +81,10 @@ def store_conversation(user_id, char_name, max_order_id, content, role):
         'role': role
     }
     table.put_item(Item=item)
+
+def create_function_args(func_name, args):
+    function_call = {
+        "name": func_name,
+        "arguments": json.dumps(args)
+    }
+    return function_call

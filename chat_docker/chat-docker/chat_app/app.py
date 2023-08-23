@@ -3,13 +3,11 @@ import os
 import boto3
 import openai
 from dotenv import load_dotenv
-from langchain import OpenAI
-from llama_index import VectorStoreIndex, SimpleDirectoryReader
-from llama_index import StorageContext, load_index_from_storage
+
 from botocore.exceptions import ClientError
 from config import DYNAMODB_TABLE_NAME
-from utils import get_max_conversation_id, get_chat_response_func, get_chat_response, store_conversation, decimal_to_int, delete_items_with_secondary_index
-from role.role_tetris import get_chat_messages_tetris, get_chat_functions_tetris
+from utils import get_max_conversation_id, get_chat_response_func, get_chat_response, store_conversation, delete_items_with_secondary_index, create_function_args
+from role.role_tetris import get_chat_messages_tetris, get_chat_functions_tetris, search_tetris_index#evalで参照
 
 def get_secret():
 
@@ -68,17 +66,6 @@ def generate_success_response(response):
         }),
     }
 
-def search_index(message):
-    # indexの読み込み
-    storage_context = StorageContext.from_defaults(persist_dir='./storage')
-    index = load_index_from_storage(storage_context)
-
-    # クエリの実行
-    query_engine = index.as_query_engine()
-    response = query_engine.query(message)
-    print("response: ", response)
-    return response
-
 # Lambdaハンドラー関数
 def lambda_handler(event, context):
     # HTTPメソッドがGETの場合、"hello world"を返す
@@ -132,19 +119,46 @@ def lambda_handler(event, context):
         # GPT API動作 ここにfunctionありのapiを実装する
         # 過去の応答を取得
         messages = get_chat_messages_tetris()
-        #functions = get_chat_functions_tetris() #最初はfunction機能は使わない
+        functions = get_chat_functions_tetris() #最初はfunction機能は使わない
         max_order_id,items = get_max_conversation_id(user_id, char_name)
         #今までの対話をmessagesに並べる
         messages.extend([{"role": item["role"], "content": item["content"]} for item in items])
         messages.append({"role": "user", "content": data['input_text']})
         #openAIのAPIを叩く
-        response = get_chat_response(messages)
-        #search_result = search_index(search_content) #最初はfunction機能は使わない
-        # DynamoDBにトーク履歴を記録
-        store_conversation(user_id, char_name, max_order_id, input_text, "user")
-        store_conversation(user_id, char_name, max_order_id + 1, response, "assistant")
+        if(0):
+            response = get_chat_response(messages)
+            response_content = response["choices"][0]["message"]["content"]
+        else:
+            response_1st = get_chat_response_func(messages, functions)
+            response_data = response_1st["choices"][0]
+            if response_data["finish_reason"] == "function_call":
+                if response_data["message"]["function_call"]["name"]:
+                    # 関数名や引数を取得する
+                    call_data = response_data["message"]["function_call"]
+                    func_name = call_data["name"]
+                    args = eval(call_data["arguments"])
+                    print(f"func_name: {func_name}, args: {args}")
+                    # 選択された関数を実行
+                    func = globals()[func_name]
+                    function_response = func(**args)
+                    print(f"function_response: {function_response}")
 
+                    # 2回目のAPI実行
+                    function_args = create_function_args(func_name, args)
+                    print(f"function_args: {function_args}")
+                    messages.append({"role": "assistant", "content": None, "function_call": function_args})
+                    messages.append({"role": "function", "name": func_name, "content": function_response})
+                    #print(f"messages: {messages}")
 
-        
-        return generate_success_response(response)
+                    response_2nd = get_chat_response_func(messages, functions)
+                    response_content = response_2nd.choices[0]["message"]["content"]
+
+                    # DynamoDBにトーク履歴を記録
+                    store_conversation(user_id, char_name, max_order_id, input_text, "user")
+                    store_conversation(user_id, char_name, max_order_id + 1, None, "function")
+                    store_conversation(user_id, char_name, max_order_id + 2, response_content, "assistant")
+
+        return generate_success_response(response_content)
+    
+
 
