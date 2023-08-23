@@ -45,11 +45,20 @@ Resources:
               Ref: ChatApi
             Auth:
               Authorizer: MyCognitoAuthorizer
-        ChatAPPGet:
+        ChatAPPPut:
           Type: Api 
           Properties:
             Path: /ask
             Method: put
+            RestApiId:
+              Ref: ChatApi
+            Auth:
+              Authorizer: MyCognitoAuthorizer
+        ChatAPPDelete:
+          Type: Api 
+          Properties:
+            Path: /ask
+            Method: delete
             RestApiId:
               Ref: ChatApi
             Auth:

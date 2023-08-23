@@ -25,20 +25,23 @@ class DynamoDBManager:
         return max_order_id, items
 
     def delete_items_with_secondary_index(self, user_id, char_name):
-        response = self.client.query(
-            TableName=self.table_name,
+        dynamodb = boto3.resource('dynamodb')
+        table = dynamodb.Table(self.table_name)
+        
+        response = table.query(
             IndexName=self.index_name,
-            KeyConditionExpression='user_id = :user_id and char_name = :cname',
+            KeyConditionExpression='user_id = :uid and char_name = :cname',
             ExpressionAttributeValues={
-                ':uid': {'S': user_id},
-                ':cname': {'S': char_name},
+                ':uid': user_id,
+                ':cname': char_name,
             },
         )
 
-        primary_keys = [{'user_id': item['user_id'], 'char_name': item['char_name']} for item in response['Items']]
+        primary_keys = [{'user_id': item['user_id'], 'order_id': item['order_id']} for item in response['Items']]
+        
         for key in primary_keys:
             print('delete_item:', key)
-            self.client.delete_item(TableName=self.table_name, Key=key)
+            table.delete_item(Key=key)
 
         print(f'Deleted {len(primary_keys)} item(s) from {self.table_name}.')
 
