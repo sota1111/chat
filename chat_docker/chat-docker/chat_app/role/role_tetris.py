@@ -12,8 +12,7 @@ class TetrisAssistant:
                 "content":
 """
 質問には100文字以内で回答する。
-テトリス対戦のルール解説や文脈のない内容を聞かれた場合、"function"を実行する。
-"function"の応答を用いて、"user"の言語に合わせた言語で100文字以内で回答する。
+必要に応じて"function"を実行し、その応答を用いて、"user"の言語に合わせた言語で100文字以内で回答する。
 """
             },
             {
@@ -33,7 +32,11 @@ class TetrisAssistant:
                 "name": "search_tetris_index",
                 "description": 
 """
-テトリス対戦に関する情報を検索する関数。文脈が分からなかった場合、この"function"を実行する。
+テトリスをpythonで操作することを通してプログラミングを学ぶ時に用いる資料を検索する。
+この資料は以下の内容を含む。
+・テトリスのルール（点数,ルール,ボード情報,フィールド情報）
+・プログラムによるテトリスの操作方法（実行コマンド,ミノの説明,コマンド、各種ファイル,アートの作り方）
+・環境構築（AI,docker,Git,Windows(WSL,PowerShell),Linux,Mac）
 """,
                 "parameters": {
                     "type": "object",
