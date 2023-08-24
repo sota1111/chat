@@ -2,12 +2,16 @@ import json
 from tools.utils import DynamoDBManager, OpenAIManager
 from tools.response import HttpResponse
 from role.role_tetris import TetrisAssistant
+import logging
+
+# ロギングの設定
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 class ChatHandler:
     
     def __init__(self, event):
         self.event = event
-        self.body = json.loads(event.get('body', '{}'))
         self.db_manager = DynamoDBManager()
         self.openai_manager = OpenAIManager()
         self.http_response = HttpResponse()
@@ -28,8 +32,9 @@ class ChatHandler:
     def handle_delete_request(self):
         # RESTfulな設計では、DELETEはbodyを持たせるべきではないが、他に方法が分からなかった。
         try:
-            user_id = self.body['identity_id']
-            char_name = self.body['character_name']
+            data = json.loads(self.event["body"])
+            user_id = data['identity_id']
+            char_name = data['character_name']
             try:
                 self.db_manager.delete_items_with_secondary_index(user_id, char_name)
                 return self.http_response.success('delete success')
@@ -88,8 +93,8 @@ class ChatHandler:
 
         # メッセージを取得
         try:
-            self.get_message_from_event()
             data = json.loads(self.event["body"])
+            logger.info('Event: %s', json.dumps(data))
             user_id = data['identity_id']
             char_name = data['character_name']
             input_text = data['input_text']
