@@ -22,6 +22,8 @@ Resources:
       PackageType: Image
       Architectures:
         - x86_64
+      Timeout: 120
+      MemorySize: 512
       Policies:
         - AmazonDynamoDBFullAccess
         - AmazonS3FullAccess
